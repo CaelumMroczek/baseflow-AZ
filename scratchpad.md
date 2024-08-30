@@ -1,14 +1,5 @@
-
-## 25 August 2019
-
-- It can often be useful to have a file devoted to keeping notes
-- Usually recorded in dot point form
-
-## 26 August 2019
-
-- It's not meant to be a thorough record
-- But it can be very handy for writing reminder notes during meetings
-- Usually we don't want this to be a complete documentary record
-- The key information is likely to be documented elsewhere
-- But remember that anything you write here forms part of the git history
-- Assume that it will be auditable later
+## 30 August 2024
+- produced and reworked huc8 precipitation and temperature data in the new project format
+- began implementing gridMET data in preprocessing
+  - Current issue: each day of the year has a `min value` and `max value` for pet
+  - Assumedly I should take the mean between the two?

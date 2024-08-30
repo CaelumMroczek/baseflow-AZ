@@ -13,7 +13,7 @@ get_prism_annual("tmean", years = 1901:2022, keepZip = FALSE)
 ppt_2013<- pd_to_file(prism_archive_subset("ppt", "annual", years = 2013))
 ppt_2013_rast <- raster(ppt_2013)
 
-#GW Basins shapefile
+#HUC8 shapefile
 huc8_shape <- shapefile(here("1-data/raw/shapefile/huc8.shp"))
 
 #Set CRS to the same
