@@ -1,22 +1,32 @@
 ## HUC8 Mean Annual ET
 #Data source: GridMET
-#Timeframe: 1958-2022 (years before 1958 replaced with basin mean over period of record)
+#Timeframe: 1979-2022 (years before 1958 replaced with basin mean over period of record)
 #Unit: mm
 
+here::i_am("1-data/preprocessing/preprocess_ET.R")
+
+#Set download folder
+prism::prism_set_dl_dir(here::here("1-data/raw/PRISM"))
+
 #AZ state shapefile
-AZ <- aoi_get(state = "AZ")
+AZ <- AOI::aoi_get(state = "AZ")
 
 #GW Basins shapefile
-huc8_shape <- shapefile(here("1-data/raw/shapefile/huc8.shp"))
+huc8_shape <- raster::shapefile(here::here("1-data/raw/shapefile/huc8.shp"))
+
+#Format to pull produce raster:
+ppt_2013<- prism::pd_to_file(prism::prism_archive_subset("ppt", "annual", years = 2013))
+ppt_2013_rast <- raster::raster(ppt_2013)
 
 #Set CRS to the same
-huc8_shape <- spTransform(huc8_shape, crs(ppt_2013_rast))
+huc8_shape <- sp::spTransform(huc8_shape, raster::crs(ppt_2013_rast))
 
-huc8_annualET <- data_frame(HUC8 = huc8_shape$HUC8) #dataframe with HUC8 numbers in order
+huc8_annualET <- data.frame(HUC8 = huc8_shape$HUC8) #dataframe with HUC8 numbers in order
 
 for (year in 1990:2022){ #only goes to 1979
 
-  d <- getGridMET(AZ, #shape of AZ
+  ##########
+  d <- climateR::getGridMET(AZ, #shape of AZ
                   varname = "pet", #actual ET
                   startDate = paste(year,"01","01",sep = "-"),
                   endDate= paste(year,"12","31", sep = "-"))
