@@ -1,0 +1,18 @@
+# Directories to ignore
+1-data/raw/
+docs/
+
+# File types to ignore
+*.csv
+*.txt
+*.log
+*.rda
+*.rds
+
+# Version control directories
+.git/
+.Rproj.user/
+
+# Temporary files
+*.tmp
+*.bak
