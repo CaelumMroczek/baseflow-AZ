@@ -6,7 +6,12 @@ sites_init <- dataRetrieval::whatNWISsites(stateCd = "AZ", #Only sites in AZ
 sites <- filter(sites_init, site_tp_cd %in% c('ST')) #only sites that are a Stream
 sites <- sites[,-c(1,4,7,8)] #remove unwanted columns
 colnames(sites) = c('Site_Num', 'Station_Name', 'Latitude', 'Longitude')
-sites$Site_Num <- as.numeric(sites$Site_Num)
+
+#short term fix
+sites <- sites[c(1:224,226:405),]
 
 
-USGSsites = site_calcs(sites$Site_Num)
+packageURL <- "https://cran.r-project.org/src/contrib/Archive/EcoHydRology/EcoHydRology_0.4.12.1.tar.gz"
+install.packages(packageURL, repos=NULL, type="source")
+
+USGSsites = site_calcs(sites)
