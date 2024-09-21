@@ -1,17 +1,29 @@
+#################################################
+## USGS streamgage BFI for AZ gauges
+## Data source: USGS
+## Timeframe: 1901-2023
+#################################################
+
+# Get discharge data for all AZ streamgages
 sites_init <- dataRetrieval::whatNWISsites(stateCd = "AZ", #Only sites in AZ
                             parameterCd = "00060",  #discharge
-                            service="dv", #daily mean values
-                            startDate = "1972-01-01") #everything starting 1972
+                            service="dv")
 
+# Preprocessing retrieved streamgages
 sites <- filter(sites_init, site_tp_cd %in% c('ST')) #only sites that are a Stream
 sites <- sites[,-c(1,4,7,8)] #remove unwanted columns
 colnames(sites) = c('Site_Num', 'Station_Name', 'Latitude', 'Longitude')
+sites <- sites[c(1:254,256:478),] #hard code remove specific problem site
 
-#short term fix
-sites <- sites[c(1:224,226:405),]
+# Run annualUSGS_preprocessing fx from preprocess_fx.R to get filtered annual BFI for gauged sites
+USGSsites = annualUSGS_preprocessing(sites)
+yearly_bfi <- USGSsites$results
+
+# Add lat/long to each site
+for (i in 1:nrow(yearly_bfi)){
 
 
-packageURL <- "https://cran.r-project.org/src/contrib/Archive/EcoHydRology/EcoHydRology_0.4.12.1.tar.gz"
-install.packages(packageURL, repos=NULL, type="source")
+}
 
-USGSsites = site_calcs(sites)
+# Run
+

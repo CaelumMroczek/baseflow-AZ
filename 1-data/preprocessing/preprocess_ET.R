@@ -1,7 +1,9 @@
+#################################################
 ## HUC8 Mean Annual Actual Evapotranspiration (AET)
 ## Data source: TerraClimate
-## Timeframe: 1958-2022 (years before 1958 replaced with basin mean over period of record)
+## Timeframe: 1958-2023 (years before 1958 replaced with basin mean over period of record)
 ## Unit: mm
+#################################################
 
 # Load Arizona shapefile
 AZ <- aoi_get(state = "AZ")
@@ -12,8 +14,8 @@ HUC8_basins <- st_sf(st_read(here("1-data/raw/shapefile/huc8.shp")))
 # Initialize dataframe for groundwater basin mean annual ET
 HUC_annualET <- data.frame(HUC8 = HUC8_basins$HUC8)
 
-# Loop through available TerraClimate data (1958-2022)
-for (year in 1958:2022) {
+# Loop through available TerraClimate data (1958-2023)
+for (year in 1958:2023) {
 
   # Get TerraClimate actual evapotranspiration (aet) data for Arizona
   d <- getTerraClim(
@@ -36,7 +38,7 @@ for (year in 1958:2022) {
   HUC_annualET <- cbind(HUC_annualET, z[2])
 }
 
-# Calculate the mean annual ET for each basin over 1958-2022
+# Calculate the mean annual ET for each basin over 1958-2023
 HUCMean <- rowMeans(as.matrix(HUC_annualET[, 2:66]))
 HUC_annualET <- cbind(HUC_annualET, HUCMean)
 
@@ -52,8 +54,8 @@ for (i in 1901:1957) {
   HUC_annualET[, as.character(i)] <- HUC_annualET[, "HUCMean"]
 }
 
-# Reorder the columns to have 1901-2022 sequentially
-HUC_annualET <- HUC_annualET[, c(58, 1:57, 59:123)]
+# Reorder the columns to have 1901-2023 sequentially
+HUC_annualET <- HUC_annualET[, c(58, 1:57, 59:124)]
 
 #Write AET file to 1-data
-#write_csv(HUC_annualET, here("1-data/huc8_aet.csv"))
+write_csv(HUC_annualET, here("1-data/huc8_aet.csv"))

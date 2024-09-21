@@ -30,3 +30,9 @@
     -   sites[225,] - Santa Cruz River at Tucson, AZ - 09482500
         -   Has data prior to 1992 and after, causes issues with BaseFlowSeparation function due to formatting... may need to change by hand
     -   Building out streamgage dataset for Training Data
+
+## 21 September 2024
+-   Adjusted time frame for precip, temp, ET, USGS gauges to go through 2023
+-   Edited annualUSGS_preprocessing function to filter out years w/ <335 days recorded, BFI<0/NaN then only include sites with >10 yr period of record
+        - Function now produces a dataframe of Site_Num, Year, BFI -> 9932 observations
+-   TO DO: build function to assign precip, temp, ET, elevation, spatial variables to each observation
