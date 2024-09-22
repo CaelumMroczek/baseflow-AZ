@@ -1,7 +1,7 @@
 #################################################
 ## HUC8 Mean Annual Actual Evapotranspiration (AET)
 ## Data source: TerraClimate
-## Timeframe: 1958-2023 (years before 1958 replaced with basin mean over period of record)
+## Timeframe: 1901-2023 (years before 1958 replaced with basin mean over period of record)
 ## Unit: mm
 #################################################
 

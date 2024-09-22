@@ -39,3 +39,7 @@
 
 ## 22 September 2024
 -   remove CO River sites from the USGS gages (9500 observations)
+-   wrote assignVariables_preprocessing function
+    -   assigns precip, temp, ET, elevation, spatial variables to each observation of annual_USGSsites
+-   update preprocessing README
+-   produced training dataset for XGBoost models

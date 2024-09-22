@@ -44,8 +44,8 @@ for (i in 1:nrow(yearly_bfi)){
   site_no <- yearly_bfi$Site_Num[i]
   this_site <- which(sites$Site_Num == site_no)
 
-  yearly_bfi$Lat[i] <- sites$Latitude[this_site]
   yearly_bfi$Long[i] <- sites$Longitude[this_site]
+  yearly_bfi$Lat[i] <- sites$Latitude[this_site]
 }
 
 #################################################
@@ -71,11 +71,13 @@ for (i in 1:nrow(yearly_bfi)){
 }
 
 # Reorder columns
-annual_USGSsites <- yearly_bfi[,c(4,1,2,3)]
+annual_USGSsites <- yearly_bfi[,c(6,1,4,5,2,3)]
 
 #################################################
 ## Run assignVariables_preprocessing function
 ## input - annual_USGSsites
 #################################################
 
+trainingData <- assignVariables_preprocessing(annual_USGSsites)
 
+#write.csv(trainingData, here('1-data/trainingData.csv'))
