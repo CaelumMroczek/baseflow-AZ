@@ -53,7 +53,7 @@ annualUSGS_preprocessing <- function(dataset){
           bfi <- BFsum / Tsum
 
           # Store the streamgage, year, and BFI value if BFI is not NaN and >= 0
-          if (!is.nan(bfi) & bfi >= 0){
+          if (!is.nan(bfi) & bfi >= 0 & bfi <= 1){
             yearly_bfi <- rbind(yearly_bfi, data.frame(Site_Num = site_no, Year = year, BFI = bfi, stringsAsFactors = FALSE))
           }
         }
