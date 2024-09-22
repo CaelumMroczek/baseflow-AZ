@@ -87,8 +87,8 @@ annualUSGS_preprocessing <- function(dataset){
 
 
 #################################################
-## Function to get discharge for USGS streamgages and calculate
-## BFI for each year
+## Function to assign precip, temp, aet, elevation, spatial variables
+## to each observation of yearly_bfi (training data)
 ##
 ## Data source: USGS
 #################################################
