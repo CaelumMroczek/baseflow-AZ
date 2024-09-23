@@ -32,14 +32,26 @@
     -   Building out streamgage dataset for Training Data
 
 ## 21 September 2024
+
 -   Adjusted time frame for precip, temp, ET, USGS gauges to go through 2023
--   Edited annualUSGS_preprocessing function to filter out years w/ <335 days recorded, BFI<0/NaN then only include sites with >10 yr period of record
-        - Function now produces a dataframe of Site_Num, Year, BFI -> 9932 observations
+-   Edited annualUSGS_preprocessing function to filter out years w/ \<335 days recorded, BFI\<0/NaN then only include sites with \>10 yr period of record - Function now produces a dataframe of Site_Num, Year, BFI -\> 9932 observations
 -   TO DO: build function to assign precip, temp, ET, elevation, spatial variables to each observation
 
 ## 22 September 2024
+
 -   remove CO River sites from the USGS gages (9500 observations)
 -   wrote assignVariables_preprocessing function
     -   assigns precip, temp, ET, elevation, spatial variables to each observation of annual_USGSsites
 -   update preprocessing README
 -   produced training dataset for XGBoost models
+
+## 23 September 2024
+
+-   Ran Full-state Model hyperparameter tuning over night (\~14.5 hours)
+    -   optimal model chosen by minimizing RMSE
+
+        | nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
+        |-----------|------------|-----------|-----------|-----------|-----------|------------|
+        | 650     | 7         | 0.05 | 0.1   | 0.6              | 10               | 1         |
+
+        : Hyper-parameters (Full State Model)
