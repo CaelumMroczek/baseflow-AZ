@@ -1,5 +1,5 @@
 #################################################
-## Training Hyperparameters for XGBoost model
+## Training Hyperparameters for statewide XGBoost model
 ## to predict BFI for full state (AZ)
 #################################################
 

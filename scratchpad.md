@@ -47,11 +47,12 @@
 
 ## 23 September 2024
 
--   Ran Full-state Model hyperparameter tuning over night (\~14.5 hours)
+-   Ran Statewide Model hyperparameter tuning over night (\~14.5 hours)
     -   optimal model chosen by minimizing RMSE
 
         | nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
-        |-----------|------------|-----------|-----------|-----------|-----------|------------|
+        |-----------|-----------|-----------|-----------|-----------|-----------|-----------|
         | 650     | 7         | 0.05 | 0.1   | 0.6              | 10               | 1         |
 
-        : Hyper-parameters (Full State Model)
+        : Hyper-parameters (Statewide Model)
+-   Added quick linear regression to check general differnces... not commented
