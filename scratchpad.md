@@ -56,3 +56,7 @@
 
         : Hyper-parameters (Statewide Model)
 -   Added quick linear regression to check general differnces... not commented
+
+## 27 September 2024
+-   Added physiographic region linked to USGS streamgage
+-   Building out statewide experiment data
