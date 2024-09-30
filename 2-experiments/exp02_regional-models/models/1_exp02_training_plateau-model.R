@@ -1,21 +1,21 @@
 #################################################
 ## Training statewide XGBoost model to predict BFI
-## for full state (AZ)
+## for Colorado Plateau region (AZ)
 #################################################
 
-trainingData <- read.csv(here("2-experiments/models/data/instrumented_all-predictors.csv"))
+trainingData <- read.csv(here("2-experiments/exp02_regional-models/data/instrumented.Plateau_all-predictors.csv"))
 
 # observed BFI (log transformed to keep values between 0-1)
 trainingData$BFI.log <- logit(trainingData$BFI)
 
 # Tuned hyper-parameters
 tune_grid <- list(
-  eta = 0.05,
-  max_depth = 7,
-  gamma = 0.1,
-  colsample_bytree = 0.6,
-  min_child_weight = 10,
-  subsample = 1)
+  eta = 0.025,
+  max_depth = 5,
+  gamma = 0.075,
+  colsample_bytree = 0.8,
+  min_child_weight = 1,
+  subsample = 0.5)
 
 # Create 10-fold cross-validation indices
 num_folds <- 10
@@ -39,7 +39,7 @@ for (fold in 1:num_folds) {
 
   # Train an xgboost model on the training set
   xgb.model <- xgboost(
-    nrounds = 650,
+    nrounds = 550,
     data = as.matrix(training[, 7:52]),
     label = training$BFI.log,
     params = tune_grid,
@@ -60,30 +60,26 @@ for (fold in 1:num_folds) {
 }
 
 # Save Model
-xgb.save(xgb.model, here("2-experiments/models/xgb.statewide"))
+xgb.save(xgb.model, here("2-experiments/exp02_regional-models/models/xgb.plateau"))
 
 # Save Results dataframe
-write.csv(results_df, here("2-experiments/exp_statewide-model/data/statewide-model_results.csv"), row.names = FALSE)
+write.csv(results_df, here("2-experiments/exp02_regional-models/data/plateau-model_results.csv"), row.names = FALSE)
 
-xgb.ggplot.importance(xgb.importance(model = xgb.model), rel_to_first = TRUE, top_n = 10)
+xgb.plot.importance(xgb.importance(model = xgb.model), rel_to_first = TRUE, top_n = 10)
 
 #################################################
 ## Goodness of Fit Statistics
 #################################################
-MSE <- round(mean(results_df$MSE), 3)
-RMSE <- sqrt(MSE)
-R2 <- round(mean(results_df$R2), 3)
+stats <- postResample(results_df$Predicted_BFI,results_df$BFI)
 
-stats <- postResample(results_df$Predicted_BFI,results_df$Observed_BFI)
-
-nash_sutcliffe <- NSE(results_df$Predicted_BFI, results_df$Observed_BFI)
-pbias <- pbias(results_df$Predicted_BFI, results_df$Observed_BFI)
-
+mse <- stats[[1]]^2
+nash_sutcliffe <- NSE(results_df$Predicted_BFI, results_df$BFI)
+pbias <- pbias(results_df$Predicted_BFI, results_df$BFI)
 
 #################################################
 ## Plotting Actual vs. Observed
 #################################################
-ggplot(data = results_df, mapping = aes(y = Observed_BFI, x = Predicted_BFI))+
+ggplot(data = results_df, mapping = aes(y = BFI, x = Predicted_BFI))+
   geom_point(alpha = 0.3,
              color = '#414141') +
   geom_smooth(method = "lm",

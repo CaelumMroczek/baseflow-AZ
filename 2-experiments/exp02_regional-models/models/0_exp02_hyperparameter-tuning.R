@@ -36,10 +36,11 @@ time.taken
 #################################################
 ## 7754 samples
 ## 46 predictor
-## Time Taken: xxxx hours
+## Time Taken: 9.57 hours
 
 ## Hyperparameter Tuning
-
+## nrounds = 1000, max_depth = 6, eta = 0.025, gamma = 0,
+## colsample_bytree = 0.8, min_child_weight = 5, subsample = 1
 #################################################
 
 #################################################
@@ -80,6 +81,9 @@ time.taken
 #################################################
 ## 1743 samples
 ## 46 predictor
-## Time Taken: xxxx hours
+## Time Taken: 7.29 hours
 
 ## Hyperparameter Tuning
+## nrounds = 550, max_depth = 5, eta = 0.025, gamma = 0.075,
+## colsample_bytree = 0.8, min_child_weight = 1, subsample = 0.5
+#################################################

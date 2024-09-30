@@ -4,7 +4,7 @@
 #################################################
 
 # Load model and model result dataframe
-xgb.statewide <- xgb.load(here("2-experiments/models/xgb.statewide"))
+xgb.statewide <- xgb.load(here("2-experiments/exp_statewide-model/models/xgb.statewide"))
 
 model.results <- read.csv(here("2-experiments/exp_statewide-model/data/statewide-model_results.csv"))
 

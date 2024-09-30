@@ -70,12 +70,9 @@ xgb.ggplot.importance(xgb.importance(model = xgb.model), rel_to_first = TRUE, to
 #################################################
 ## Goodness of Fit Statistics
 #################################################
-MSE <- round(mean(results_df$MSE), 3)
-RMSE <- sqrt(MSE)
-R2 <- round(mean(results_df$R2), 3)
-
 stats <- postResample(results_df$Predicted_BFI,results_df$Observed_BFI)
 
+mse <- stats[[1]]^2
 nash_sutcliffe <- NSE(results_df$Predicted_BFI, results_df$Observed_BFI)
 pbias <- pbias(results_df$Predicted_BFI, results_df$Observed_BFI)
 
