@@ -39,13 +39,13 @@ output:
 |--------|--------|--------|--------|----------------|-------|
 | 0.8183 | 0.0123 | 0.1108 | 0.0782 | 0.8149         | -3.7  |
 
-3.  Statewide Model - Basin Performance
+3.  Statewide Model - Basin & Range
 
 | R2     | MSE    | RMSE   | MAE    | Nash-Sutcliffe | pbias |
 |--------|--------|--------|--------|----------------|-------|
 | 0.7479 | 0.0179 | 0.1336 | 0.0895 | 0.7385         | -6.2  |
 
-4.  Statewide Model - Plateau Performance
+4.  Statewide Model - Colorado Plateau 
 
 | R2     | MSE    | RMSE   | MAE    | Nash-Sutcliffe | pbias |
 |--------|--------|--------|--------|----------------|-------|
