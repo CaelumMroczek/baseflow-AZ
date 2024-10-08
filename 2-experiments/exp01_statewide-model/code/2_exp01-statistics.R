@@ -4,9 +4,9 @@
 #################################################
 
 # Load model and model result dataframe
-xgb.statewide <- xgb.load(here("2-experiments/exp_statewide-model/models/xgb.statewide"))
+xgb.statewide <- xgboost::xgb.load(here::here("2-experiments/exp01_statewide-model/models/xgb.statewide"))
 
-model.results <- read.csv(here("2-experiments/exp_statewide-model/data/statewide-model_results.csv"))
+model.results <- read.csv(here::here("2-experiments/exp01_statewide-model/data/statewide-model_results.csv"))
 
 
 #################################################
