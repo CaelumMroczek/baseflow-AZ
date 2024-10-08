@@ -1,7 +1,3 @@
-# Activate renv if not already done
-if (!renv::activated()) {
-  renv::activate()
-}
 
 # Get the list of packages from renv.lock file
 lockfile <- renv::load("renv.lock")
