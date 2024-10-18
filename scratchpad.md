@@ -51,17 +51,19 @@
     -   optimal model chosen by minimizing RMSE
 
         | nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
-        |-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+        |---------|-----------|------|-------|------------------|------------------|-----------|
         | 650     | 7         | 0.05 | 0.1   | 0.6              | 10               | 1         |
 
         : Hyper-parameters (Statewide Model)
 -   Added quick linear regression to check general differnces... not commented
 
 ## 27 September 2024
+
 -   Added physiographic region linked to USGS streamgage
 -   Building out statewide experiment data
 
 ## 17 October 2024
+
 -   Starting Mann-Kendall and Kendall Tau test analysis
 -   Running second 'trimmed' XCBoost model (removing unimportant predictors)
     -   Hyperparameters are very similar to the full statewide model

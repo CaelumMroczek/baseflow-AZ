@@ -1,21 +1,232 @@
 ---
-title: "comparing-models"
+title: "Comparing XGBoost Models"
 author: "Caelum Mroczek"
-format: html
+format: 
+  html:
+    df-print: kable
 editor: visual
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Full Statewide Model 
-
 ```{r}
+#| label: Load Packages 
 #| echo: false
-2 * 2
+#| warning: false
+#| message: false
+
+packages <- c("data.table", "dataRetrieval", "dplyr","exactextractr", "knitr",
+              "ggplot2", "here", "lubridate", "raster", "readr",
+              "renv", "rmarkdown", "sf", "sp", "stringr", "tidyverse", "terra",
+              "elevatr", "boot", "xgboost", "caret", "ggthemes", "hydroGOF", "Kendall")
+
+# Install packages that are not already installed
+install_if_missing <- function(pkg) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# Apply the function to all packages
+invisible(lapply(packages, install_if_missing))
+
+# Load all the packages
+invisible(lapply(packages, library, character.only = TRUE))
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+## Full Statewide Model
 
-## Full Statewide Model 
+This model uses all 45 features from the original data set.
+
+#### Hyper-parameters
+
+| nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 650     | 7         | 0.05 | 0.1   | 0.6              | 10               | 1         |
+
+```{r}
+#| label: Load Files 
+#| echo: false
+
+statewide.model <- xgb.load(here("2-experiments/exp01_statewide-model/models/xgb.statewide"))
+statewide.feats <- read.csv(here("2-experiments/exp01_statewide-model/models/xgb.feature-names.csv"))
+statewide.results <- read.csv(here("2-experiments/exp01_statewide-model/data/statewide-model_results.csv"))
+```
+
+```{r}
+#| label: Statewide Model Results
+#| echo: false
+#| warning: false
+#| fig-cap: "Statewide Model Results"
+#| fig-subcap: 
+#| - "Observed BFI vs. Predicted BFI. Solid black line indicates the 1-to-1 line, red dashed line is regressed to the data."
+#| - "Top 10 most important features for the statewide model"
+#| layout-ncol: 2
+
+ggplot(data = statewide.results, mapping = aes(y = BFI, x = Predicted_BFI))+
+  geom_point(alpha = 0.3,
+             color = '#414141') +
+  geom_smooth(method = "lm",
+              linetype = "dashed",
+              color = 'red',
+              linewidth = .75,
+              se=FALSE,
+              fullrange=TRUE) +
+  geom_abline(slope = 1,
+              intercept =  0,
+              color = "black",
+              linewidth = 0.75) +
+  theme_few() +
+  theme(text=element_text(size=16, family = "Helvetica"),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_text(size = 16, face = "bold"),
+        axis.ticks.length = unit(.1,'cm'),
+        axis.ticks = element_line(size = 0.5),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        panel.border = element_rect(colour = "black", fill=NA, linewidth=1)) +
+  scale_x_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("0", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  labs(y = "Observed BFI",
+       x = "Predicted BFI")
+
+xgb.plot.importance(xgb.importance(model = statewide.model,feature_names = statewide.feats[,1]), rel_to_first = TRUE, top_n = 10)
+```
+
+```{r}
+#| label: Statewide Model Statistics
+#| echo: false
+#| warning: false
+#| fig-cap: "Statewide Model - Goodness of Fit Stats"
+
+source(here("2-experiments/exp01_statewide-model/code/1_exp01_fx.R"))
+analysis.stats(statewide.results)
+```
+
+## Trimmed Statewide Model
+
+This model has undergone feature selection uses only the top 10 features from the **Full Statewide Model.**
+
+#### Hyper-parameters
+
+| nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 700     | 7         | 0.05 | 0.1   | 0.8              | 10               | 1         |
+
+```{r}
+#| label: Load Trimmed Files 
+#| echo: false
+
+trimmed.model <- xgb.load(here("2-experiments/exp03_trimmed-statewide-model/models/xgb.trimmed-statewide"))
+trimmed.feats <- read.csv(here("2-experiments/exp03_trimmed-statewide-model/models/xgb.feature-names.csv"))
+trimmed.results <- read.csv(here("2-experiments/exp03_trimmed-statewide-model/data/trimmed-statewide-model_results.csv"))
+```
+
+```{r}
+#| label: Trimmed Model Results
+#| echo: false
+#| warning: false
+#| fig-cap: "Trimmed Model Results"
+#| fig-subcap: 
+#| - "Observed BFI vs. Predicted BFI. Solid black line indicates the 1-to-1 line, red dashed line is regressed to the data."
+#| - "Top 10 most important features for the trimmed model"
+#| layout-ncol: 2
+
+ggplot(data = trimmed.results, mapping = aes(y = BFI, x = Predicted_BFI))+
+  geom_point(alpha = 0.3,
+             color = '#414141') +
+  geom_smooth(method = "lm",
+              linetype = "dashed",
+              color = 'red',
+              linewidth = .75,
+              se=FALSE,
+              fullrange=TRUE) +
+  geom_abline(slope = 1,
+              intercept =  0,
+              color = "black",
+              linewidth = 0.75) +
+  theme_few() +
+  theme(text=element_text(size=16, family = "Helvetica"),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_text(size = 16, face = "bold"),
+        axis.ticks.length = unit(.1,'cm'),
+        axis.ticks = element_line(size = 0.5),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        panel.border = element_rect(colour = "black", fill=NA, linewidth=1)) +
+  scale_x_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("0", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  labs(y = "Observed BFI",
+       x = "Predicted BFI")
+
+xgb.plot.importance(xgb.importance(model = trimmed.model,feature_names = trimmed.feats[,1]), rel_to_first = TRUE, top_n = 10)
+```
+
+```{r}
+#| label: Trimmed Model Statistics
+#| echo: false
+#| warning: false
+#| fig-cap: "Trimmed Model - Goodness of Fit Stats"
+
+source(here("2-experiments/exp01_statewide-model/code/1_exp01_fx.R"))
+trimmed.stats <- analysis.stats(trimmed.results)
+trimmed.stats
+```
+
+## Comparing Results
+
+```{r}
+#| label: Compared Model Results 
+#| echo: false
+#| warning: false
+#| fig-cap: "Trimmed Model Results"
+#| fig-subcap: 
+#| - "Observed BFI vs. Predicted BFI. Solid black line indicates the 1-to-1 line, red dotted line is regressed to the statewide model data, green dashed line is regressed to the trimmed model data."
+
+ggplot()+
+  geom_point(data = trimmed.results,
+              mapping = aes(y = BFI, x = Predicted_BFI),
+             alpha = 0.3,
+             color = '#414141') +
+  geom_smooth(data = trimmed.results,
+              mapping = aes(y = BFI, x = Predicted_BFI),
+              method = "lm",
+              linetype = "dashed",
+              color = 'green',
+              linewidth = .75,
+              se=FALSE,
+              fullrange=TRUE) +
+  geom_smooth(data = statewide.results,
+              mapping = aes(y = BFI, x = Predicted_BFI),
+              method = "lm",
+              linetype = "dotted",
+              color = 'red',
+              linewidth = .75,
+              se=FALSE,
+              fullrange=TRUE) +
+  geom_abline(slope = 1,
+              intercept =  0,
+              color = "black",
+              linewidth = 0.75) +
+  theme_few() +
+  theme(text=element_text(size=16, family = "Helvetica"),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_text(size = 16, face = "bold"),
+        axis.ticks.length = unit(.1,'cm'),
+        axis.ticks = element_line(size = 0.5),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        panel.border = element_rect(colour = "black", fill=NA, linewidth=1)) +
+  scale_x_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("0", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  labs(y = "Observed BFI",
+       x = "Predicted BFI")
+```

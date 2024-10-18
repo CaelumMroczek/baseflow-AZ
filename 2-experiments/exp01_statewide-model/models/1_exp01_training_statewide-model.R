@@ -108,4 +108,4 @@ ggplot(data = results_df, mapping = aes(y = BFI, x = Predicted_BFI))+
 
 feats <- read.csv(here("2-experiments/exp01_statewide-model/models/xgb.feature-names.csv"))
 
-xgb.plot.importance(xgb.importance(model = y,feature_names = feats[,1]), rel_to_first = TRUE, top_n = 10)
+xgb.plot.importance(xgb.importance(model = xgb.model,feature_names = feats[,1]), rel_to_first = TRUE, top_n = 10)
