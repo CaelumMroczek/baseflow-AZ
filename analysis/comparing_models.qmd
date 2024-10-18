@@ -1,0 +1,21 @@
+---
+title: "comparing-models"
+author: "Caelum Mroczek"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Full Statewide Model 
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+## Full Statewide Model 

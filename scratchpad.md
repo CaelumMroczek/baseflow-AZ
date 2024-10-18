@@ -64,3 +64,8 @@
 ## 17 October 2024
 -   Starting Mann-Kendall and Kendall Tau test analysis
 -   Running second 'trimmed' XCBoost model (removing unimportant predictors)
+    -   Hyperparameters are very similar to the full statewide model
+
+        | nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
+        |---------|-----------|------|-------|------------------|------------------|-----------|
+        | 700     | 7         | 0.05 | 0.1   | 0.8              | 10               | 1         |
