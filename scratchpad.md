@@ -60,3 +60,7 @@
 ## 27 September 2024
 -   Added physiographic region linked to USGS streamgage
 -   Building out statewide experiment data
+
+## 17 October 2024
+-   Starting Mann-Kendall and Kendall Tau test analysis
+-   Running second 'trimmed' XCBoost model (removing unimportant predictors)

@@ -3,7 +3,7 @@
 ## for full state (AZ)
 #################################################
 
-trainingData <- read.csv(here("2-experiments/exp01_statewide-model/models/data/instrumented_all-predictors.csv"))
+trainingData <- read.csv(here("2-experiments/models/data/instrumented_all-predictors.csv"))
 
 # observed BFI (log transformed to keep values between 0-1)
 trainingData$BFI.log <- logit(trainingData$BFI)
@@ -24,8 +24,10 @@ fold_indices <- createFolds(trainingData$HUC8, k = num_folds)
 # Initialize an empty dataframe to store results from all folds
 results_df <- data.frame()
 
-## Train the model #############################
+#################################################
+## Train the model
 ## 10-fold cross validation
+#################################################
 
 for (fold in 1:num_folds) {
   # Get the indices for the current fold
@@ -58,23 +60,27 @@ for (fold in 1:num_folds) {
 }
 
 # Save Model
-xgb.save(xgb.model, here("2-experiments/exp01_statewide-model/models/xgb.statewide"))
-
-# Save feature names
-write.csv(xgb.model$feature_names, here("2-experiments/exp01_statewide-model/models/xgb.feature-names.csv"), row.names = F)
+xgb.save(xgb.model, here("2-experiments/models/xgb.statewide"))
 
 # Save Results dataframe
-write.csv(results_df, here("2-experiments/exp01_statewide-model/data/statewide-model_results.csv"), row.names = FALSE)
+write.csv(results_df, here("2-experiments/exp_statewide-model/data/statewide-model_results.csv"), row.names = FALSE)
 
-## Goodness of Fit Statistics #############################
+xgb.ggplot.importance(xgb.importance(model = xgb.model), rel_to_first = TRUE, top_n = 10)
 
-source(here("2-experiments/exp01_statewide-model/code/1_exp01_fx.R"))
-analysis.stats(results_df)
+#################################################
+## Goodness of Fit Statistics
+#################################################
+stats <- postResample(results_df$Predicted_BFI,results_df$Observed_BFI)
+
+mse <- stats[[1]]^2
+nash_sutcliffe <- NSE(results_df$Predicted_BFI, results_df$Observed_BFI)
+pbias <- pbias(results_df$Predicted_BFI, results_df$Observed_BFI)
 
 
-## Plotting Actual vs. Observed ####
-
-ggplot(data = results_df, mapping = aes(y = BFI, x = Predicted_BFI))+
+#################################################
+## Plotting Actual vs. Observed
+#################################################
+ggplot(data = results_df, mapping = aes(y = Observed_BFI, x = Predicted_BFI))+
   geom_point(alpha = 0.3,
              color = '#414141') +
   geom_smooth(method = "lm",
@@ -103,9 +109,3 @@ ggplot(data = results_df, mapping = aes(y = BFI, x = Predicted_BFI))+
                      expand = c(0, 0), limits = c(0, 1)) +
   labs(y = "Observed BFI",
        x = "Predicted BFI")
-
-## Plotting Feature Importance #############################
-
-feats <- read.csv(here("2-experiments/exp01_statewide-model/models/xgb.feature-names.csv"))
-
-xgb.plot.importance(xgb.importance(model = y,feature_names = feats[,1]), rel_to_first = TRUE, top_n = 10)
