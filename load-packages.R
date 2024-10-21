@@ -25,4 +25,4 @@ install_if_missing <- function(pkg) {
 invisible(lapply(packages, install_if_missing))
 
 # Load all the packages
-lapply(packages, library, character.only = TRUE)
+invisible(lapply(packages, library, character.only = TRUE))

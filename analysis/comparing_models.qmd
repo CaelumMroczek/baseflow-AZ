@@ -40,7 +40,7 @@ This model uses all 45 features from the original data set.
 #### Hyper-parameters
 
 | nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
-|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+|---------|-----------|------|-------|------------------|------------------|-----------|
 | 650     | 7         | 0.05 | 0.1   | 0.6              | 10               | 1         |
 
 ```{r}
@@ -112,7 +112,7 @@ This model has undergone feature selection uses only the top 10 features from th
 #### Hyper-parameters
 
 | nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
-|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+|---------|-----------|------|-------|------------------|------------------|-----------|
 | 700     | 7         | 0.05 | 0.1   | 0.8              | 10               | 1         |
 
 ```{r}

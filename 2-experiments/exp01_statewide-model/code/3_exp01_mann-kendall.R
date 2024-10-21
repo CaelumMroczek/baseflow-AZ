@@ -18,13 +18,16 @@ perform_mann_kendall <- function(data) {
 }
 
 # Apply the Kendall Rank test to each streamgage over its full period of record
-mann_kendall_results <- instrumented_all_predictors %>%
+mann_kendall_results <- usgs_gages %>%
   group_by(Site_Num, HUC8, Lat, Long) %>%
   summarise(mk_result = list(perform_mann_kendall(pick(BFI)))) %>%
   unnest(cols = c(mk_result)) %>%
   ungroup()
 
+# Indicate is the result is significant [1 = yes, 0 = no]
 mann_kendall_results$sig_05 <- ifelse(mann_kendall_results$p_value < 0.05, 1, 0)
+
+# Indicate trend [1 = positive, 0 = negative]
 mann_kendall_results$trend <- ifelse(mann_kendall_results$tau > 0, 1, 0)
 
 write.csv(mann_kendall_results, here("2-experiments/exp01_statewide-model/data/mann_kendall_results.csv"), row.names = FALSE)

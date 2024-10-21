@@ -1,0 +1,112 @@
+```{r}
+usgs_gages <- read.csv(here("1-data/instrumented_all-predictors.csv"))
+```
+
+## Step 1: Descriptive Statistics for BFI
+
+Calculate basic descriptive statistics for BFI: mean, median, standard deviation, min, max, and quartiles
+
+-   \>400 observations of BFI are \< .0001; 1000 are \< 0.01
+
+    -   `Should check if they are at the same locations (rivers to get rid of as they are likely ephemeral) or time periods (dry periods of groundwater-surface water interaction)`
+
+```{r}
+bfi_summary <- usgs_gages %>%
+  summarise(
+    mean_BFI = mean(BFI, na.rm = TRUE),    # Mean BFI
+    median_BFI = median(BFI, na.rm = TRUE),  # Median BFI
+    sd_BFI = sd(BFI, na.rm = TRUE),        # Standard Deviation of BFI
+    min_BFI = min(BFI, na.rm = TRUE),      # Minimum BFI
+    max_BFI = max(BFI, na.rm = TRUE),      # Maximum BFI
+    Q1_BFI = quantile(BFI, 0.25, na.rm = TRUE),  # First Quartile (25th percentile)
+    Q3_BFI = quantile(BFI, 0.75, na.rm = TRUE)   # Third Quartile (75th percentile)
+  )
+
+bfi_summary
+
+# Plots of BFI
+ggplot(usgs_gages, aes(x = BFI)) + 
+  geom_histogram(binwidth = 0.01, color = 'black', fill = 'purple', alpha = 0.7) + 
+  labs(title = "Histogram of BFI", x = "Baseflow Index (BFI)", y = "Frequency") + 
+  theme_minimal()
+
+length(which(usgs_gages$BFI < .01))
+length(which(usgs_gages$BFI < .001))
+
+```
+
+## Step 2: Kendall Tau Analysis
+
+Kendall's Tau correlation test for BFI with other numeric variables
+
+-   **No strong correlations** were found between BFI and any of the variables tested
+
+-   The relationship between **Year** and **BFI** is negligible (0.025, weak positive correlation), indicating no trend over time for BFI in the data.
+
+```{r}
+library(corrr)
+
+# Select the desired columns from the dataset
+select_columns <- usgs_gages %>%
+  dplyr::select(BFI, Year, Temp_C, Precip_MM, AET_MM, Elevation_M, AREA_KM2)
+
+# Compute Kendall's Tau correlations
+kendall_tau_corr <- cor(select_columns, use = "pairwise.complete.obs", method = "kendall")
+
+# Extract BFI correlations
+bfi_corr <- kendall_tau_corr["BFI", ]
+
+# Correlation matrix as a heatmap
+library(ggcorrplot)
+ggcorrplot(kendall_tau_corr, lab = TRUE, title = "Kendall's Tau Correlation Matrix")
+
+```
+
+## Multiple Linear Regression Model
+
+```{r}
+# Fit a multiple linear regression model
+model <- lm(BFI ~ ., data = usgs_gages)
+
+# summary of the model
+summary(model)
+
+# use model to make predictions
+predictions <- predict(model, usgs_gages)
+
+# calculate model performance metrics
+r2_value <- summary(model)$r.squared
+mse_value <- mse(usgs_gages$BFI, predictions)
+rmse_value <- rmse(usgs_gages$BFI, predictions)
+mae_value <- mae(usgs_gages$BFI, predictions)
+nse_value <- NSE(obs = usgs_gages$BFI, sim = predictions)
+pbias_value <- (sum(usgs_gages$BFI - predictions) / sum(usgs_gages$BFI)) * 100
+
+results <- data.frame(
+    "R2" = r2_value,
+    "MSE" = mse_value,
+    "RMSE" = rmse_value,
+    "MAE" = mae_value,
+    "Nash-Sutcliffe" = nse_value,
+    "pbias" = pbias_value)
+
+results
+
+```
+
+## Exploring Low BFI - Spatially/Temporally
+
+```{r}
+# Filter observations of BFI < 0.0001
+low_bfi_data <- usgs_gages %>% filter(BFI < 0.0001)
+
+# Count occurrences of low BFI observations by location
+location_counts <- low_bfi_data %>%
+  group_by(Site_Num, HUC8) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+# View locations with low BFI observations
+print(location_counts)
+
+```

@@ -1,0 +1,190 @@
+```{r}
+usgs_gages <- read.csv(here("1-data/instrumented_all-predictors.csv"))
+
+statewide.model <- xgb.load(here("2-experiments/exp01_statewide-model/models/xgb.statewide"))
+
+statewide.feats <- read.csv(here("2-experiments/exp01_statewide-model/models/xgb.feature-names.csv"))
+
+statewide.results <- read.csv(here("2-experiments/exp01_statewide-model/data/statewide-model_results.csv"))
+```
+
+# Statistics of Statewide XGBoost Model
+
+## Model Performance
+
+```{r}
+source(here("2-experiments/exp01_statewide-model/code/0_exp01_fx.R"))
+analysis.stats(statewide.results)
+
+predicted <- statewide.results$Predicted_BFI
+observed <- statewide.results$BFI
+
+residuals <- observed - predicted 
+
+# Create a data frame for plotting
+residuals_df <- data.frame(Predicted = predictions, Residuals = residuals)
+
+# Plot residuals vs. predicted values
+ggplot(residuals_df, aes(x = Predicted, y = Residuals)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals vs. Predicted Values", 
+       x = "Predicted Values", 
+       y = "Residuals") +
+  theme_minimal()
+
+# Histogram of residuals
+ggplot(residuals_df, aes(x = Residuals)) +
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
+  labs(title = "Histogram of Residuals", 
+       x = "Residuals", 
+       y = "Frequency") +
+  theme_minimal()
+```
+
+## Statistics of Statewide Model
+
+### Feature Importance
+
+```{r}
+# Plot Feature Importance
+xgb.plot.importance(xgb.importance(model = statewide.model,feature_names = statewide.feats[,1]), rel_to_first = TRUE, top_n = 10)
+```
+
+### Observed vs Predicted
+
+```{r}
+# Actual-Predicted Plot
+ggplot(data = statewide.results, mapping = aes(y = BFI, x = Predicted_BFI)) +
+  geom_point(alpha = 0.3, color = '#414141') +
+  geom_smooth(method = "lm", linetype = "dashed", color = 'black', linewidth = .75, se=FALSE, fullrange=TRUE) +
+  geom_abline(slope = 1, intercept =  0, color = "black", linewidth = 0.75) +
+  theme_few() +
+  theme(text=element_text(size=16, family = "Helvetica"),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_text(size = 16, face = "bold"),
+        axis.ticks.length = unit(.1,'cm'),
+        axis.ticks = element_line(size = 0.5),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        panel.border = element_rect(colour = "black", fill=NA, linewidth=1)) +
+  scale_x_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("0", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  labs(y = "Observed BFI", x = "Predicted BFI")
+
+```
+
+### Statistics of Statewide Model - Physiographic Regions
+
+```{r}
+regions <- read.csv(here("1-data/instrumented_regions.csv"))
+
+data.regional <- model.results %>%
+  left_join(regions %>% dplyr::select(Site_Num, PROVINCE), by = "Site_Num")
+
+region.Basin <- which(data.regional$PROVINCE == "BASIN AND RANGE")
+region.Plateau <- which(data.regional$PROVINCE == "COLORADO PLATEAUS")
+
+# Basin & Range Goodness of Fit Stats
+analysis.stats(data.regional[region.Basin,])
+
+# Colorado Plateau Goodness of Fit Stats
+analysis.stats(data.regional[region.Plateau,])
+
+# Actual-Predicted Plot
+ggplot(data = data.regional, mapping = aes(y = BFI, x = Predicted_BFI, color = PROVINCE)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", linetype = "dashed", color = 'black', linewidth = .75, se=FALSE, fullrange=TRUE) +
+  geom_abline(slope = 1, intercept =  0, color = "black", linewidth = 0.75) +
+  theme_few() +
+  theme(text=element_text(size=16, family = "Helvetica"),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_text(size = 16, face = "bold"),
+        axis.ticks.length = unit(.1,'cm'),
+        axis.ticks = element_line(size = 0.5),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        panel.border = element_rect(colour = "black", fill=NA, linewidth=1)) +
+  scale_x_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(0,0.25,0.5,0.75,1),
+                     labels = c("0", "0.25", "0.5", "0.75", "1"),
+                     expand = c(0, 0), limits = c(0, 1)) +
+  labs(y = "Observed BFI", x = "Predicted BFI")
+
+```
+
+### Statistics of Statewide Model - Precipitation
+
+```{r}
+precip.low <- which(statewide.results$Precip_MM < median(statewide.results$Precip_MM)) # Streamgages with precipitation below median
+precip.high <- which(statewide.results$Precip_MM > median(statewide.results$Precip_MM)) # Streamgages with precipitation above median
+
+# Low Precip Goodness of Fit Stats
+analysis.stats(statewide.results[precip.low,])
+
+# High Precip Goodness of Fit Stats
+analysis.stats(statewide.results[precip.high,])
+
+```
+
+```{r}
+# Load necessary libraries
+library(xgboost)
+library(ggplot2)
+library(dplyr)
+
+set.seed(123)  # For reproducibility
+data.full <- statewide.results  # Ensure this is your dataset
+n <- nrow(data.full)
+
+# Initialize variables to store results
+train_sizes <- seq(10, n, by = 10)  # Define training sizes
+train_errors <- numeric(length(train_sizes))
+test_errors <- numeric(length(train_sizes))
+
+# Loop over different training sizes
+for (i in seq_along(train_sizes)) {
+  size <- train_sizes[i]
+  
+  # Create a training set
+  train_indices <- sample(1:n, size, replace = FALSE)
+  train_data <- data.full[train_indices, ]
+  test_data <- data.full[-train_indices, ]
+  
+  # Train XGBoost model
+  dtrain <- xgb.DMatrix(data = as.matrix(train_data[, -which(names(train_data) == "BFI")]), label = train_data$BFI)
+  model <- xgboost(data = dtrain, nrounds = 100, objective = "reg:squarederror", verbose = 0)
+  
+  # Predict on training and test data
+  train_preds <- predict(model, dtrain)
+  dtest <- xgb.DMatrix(data = as.matrix(test_data[, -which(names(test_data) == "BFI")]))
+  test_preds <- predict(model, dtest)
+  
+  # Calculate RMSE for train and test
+  train_errors[i] <- sqrt(mean((train_data$BFI - train_preds)^2, na.rm = TRUE))
+  test_errors[i] <- sqrt(mean((test_data$BFI - test_preds)^2, na.rm = TRUE))
+}
+
+# Combine results into a data frame for plotting
+learning_curve_data <- data.frame(
+  Train_Size = train_sizes,
+  Train_Error = train_errors,
+  Test_Error = test_errors
+)
+
+# Plotting the learning curves
+ggplot(learning_curve_data, aes(x = Train_Size)) +
+  geom_line(aes(y = Train_Error, color = "Training Error"), size = 1) +
+  geom_line(aes(y = Test_Error, color = "Test Error"), size = 1) +
+  labs(title = "Learning Curves for XGBoost Model",
+       x = "Training Size",
+       y = "RMSE",
+       color = "Legend") +
+  theme_minimal() +
+  scale_color_manual(values = c("blue", "red"))
+
+```

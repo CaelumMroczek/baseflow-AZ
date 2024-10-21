@@ -51,7 +51,7 @@
     -   optimal model chosen by minimizing RMSE
 
         | nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
-        |---------|-----------|------|-------|------------------|------------------|-----------|
+        |-----------|-----------|-----------|-----------|-----------|-----------|-----------|
         | 650     | 7         | 0.05 | 0.1   | 0.6              | 10               | 1         |
 
         : Hyper-parameters (Statewide Model)
@@ -65,9 +65,21 @@
 ## 17 October 2024
 
 -   Starting Mann-Kendall and Kendall Tau test analysis
--   Running second 'trimmed' XCBoost model (removing unimportant predictors)
+-   Running second 'trimmed' XGBoost model (removing unimportant predictors)
     -   Hyperparameters are very similar to the full statewide model
 
         | nrounds | max_depth | eta  | gamma | colsample_bytree | min_child_weight | subsample |
-        |---------|-----------|------|-------|------------------|------------------|-----------|
+        |-----------|-----------|-----------|-----------|-----------|-----------|-----------|
         | 700     | 7         | 0.05 | 0.1   | 0.8              | 10               | 1         |
+
+## 18 October 2024
+
+-   Set up Quarto doc to compare trimmed model with full statewide model
+
+    -   Trimmed model performs *slightly* better than the full model on all measures of fit
+
+## 20 October 2024
+
+-   Work on exploratory + descriptive statistics... should have done that a while ago
+
+-   
