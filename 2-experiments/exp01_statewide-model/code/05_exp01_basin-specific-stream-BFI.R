@@ -37,14 +37,15 @@ source(here("1-data/preprocessing/1_preprocess_fx.R"))
 final.sanPedro <- assignVariables_preprocessing(pts)
 
 final_data.sanPedro <- final[,c(1:4,6:8,5,10:51)]
-#write.csv(final_data, here("2-experiments/exp01_statewide-model/data/artificial-pts_dataset.csv"))
+
+write.csv(final_data.sanPedro, here("2-experiments/exp01_statewide-model/data/san-pedro-pts_dataset.csv"))
 
 
 # Predictions -------------------------------------------------------------
 
 xgb.statewide <- xgb.load(here("2-experiments/exp01_statewide-model/models/xgb.statewide"))
 
-final_data$Predicted_BFI <- inv.logit(predict(object = xgb.statewide, newdata = as.matrix(final_data[, 5:50])))
+final_data.sanPedro$Predicted_BFI <- inv.logit(predict(object = xgb.statewide, newdata = as.matrix(final_data.sanPedro[, 5:50])))
 
 huc_avg <- final_data %>%
   group_by(HUC8) %>%
