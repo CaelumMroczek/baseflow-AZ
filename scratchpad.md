@@ -82,4 +82,20 @@
 
 -   Work on exploratory + descriptive statistics... should have done that a while ago
 
--   
+## 21 October 2024
+
+-   Run ArtificialPoints_20241015 through model
+
+    -   20 random points on streams within each HUC8
+
+    -   Since this version of the model/dataset includes observations with low BFI (below 0.1), the estimates of BFI are much lower.
+
+    -   **Mean BFI of instrumented sites (1991-2020) is 0.362.**
+
+    -   **Mean BFI of artificial points (1991-2020) is 0.201.**
+
+-   Set point on each NHD stream section in the Lower San Pedro to serve as predicting points
+
+    -   All stream orders (1-9?)
+
+    -   347730 observations

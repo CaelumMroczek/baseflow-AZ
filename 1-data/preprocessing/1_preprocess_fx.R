@@ -100,7 +100,7 @@ assignVariables_preprocessing <- function(dataset){
 
   # Initialize variable dataframe
   variables <- as.data.frame(matrix(nrow = nrow(dataset), ncol = 46))
-  colnames(variables) <- c("Temp_C", "Precip_MM", "AET_MM", "Elevation_M", colnames(spatialVariables[3:44]))
+  colnames(variables) <- c("Temp_C", "Precip_MM", "AET_MM", "Elev", colnames(spatialVariables[3:44]))
 
   pb <- progress::progress_bar$new(total = nrow(dataset))
 
@@ -116,17 +116,17 @@ assignVariables_preprocessing <- function(dataset){
     huc.aet <- which(actualET$HUC8 == huc.site)
     huc.vars <- which(spatialVariables$HUC8 == huc.site)
 
-    variables$Temp_C[i] <- temperature[huc.temp, year.site]
-    variables$Precip_MM[i] <- precipitation[huc.precip, year.site]
-    variables$AET_MM[i] <- actualET[huc.aet, year.site]
+    variables$Temp_C[i] <- temperature[huc.temp, as.character(year.site)]
+    variables$Precip_MM[i] <- precipitation[huc.precip, as.character(year.site)]
+    variables$AET_MM[i] <- actualET[huc.aet, as.character(year.site)]
     variables[i,5:46] <- spatialVariables[huc.vars,3:44]
 
     # Extract elevation for point
-    coords <- dataset[i,3:4]
-    colnames(coords) <- c("x", "y")
-
-    suppressMessages(elev <- get_elev_point(coords, prj = 4326)) #wgs 84 proj
-    variables$Elevation_M[i] <- elev$elevation
+    # coords <- dataset[i,2:3]
+    # colnames(coords) <- c("x", "y")
+    #
+    # suppressMessages(elev <- get_elev_point(as.data.frame(coords), prj = 4326)) #wgs 84 proj
+    # variables$Elevation_M[i] <- elev$elevation
     pb$tick()
   }
 

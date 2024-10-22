@@ -26,3 +26,4 @@ invisible(lapply(packages, install_if_missing))
 
 # Load all the packages
 invisible(lapply(packages, library, character.only = TRUE))
+
