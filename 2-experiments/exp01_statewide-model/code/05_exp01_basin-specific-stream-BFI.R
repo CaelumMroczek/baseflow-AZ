@@ -36,7 +36,7 @@ pts <- pts_with_huc8 %>%
 source(here("1-data/preprocessing/1_preprocess_fx.R"))
 final.sanPedro <- assignVariables_preprocessing(pts)
 
-final_data.sanPedro <- final[,c(1:4,6:8,5,10:51)]
+final_data.sanPedro <- final.sanPedro[,c(1:4,6:8,5,10:51)]
 
 # Predictions -------------------------------------------------------------
 
@@ -44,8 +44,12 @@ xgb.statewide <- xgb.load(here("2-experiments/exp01_statewide-model/models/xgb.s
 
 final_data.sanPedro$Predicted_BFI <- inv.logit(predict(object = xgb.statewide, newdata = as.matrix(final_data.sanPedro[, 5:50])))
 
-write.csv(final_data.sanPedro, here("2-experiments/exp01_statewide-model/data/san-pedro-pts_dataset.csv"))
+summary.sanPedro <- final_data.sanPedro %>%
+  group_by(HUC8, Long, Lat) %>%
+  summarise(meanBFI = mean(Predicted_BFI))
 
+write.csv(final_data.sanPedro, here("2-experiments/exp01_statewide-model/data/san-pedro-pts_dataset.csv"))
+write.csv(summary.sanPedro, here("2-experiments/exp01_statewide-model/data/san-pedro_meanBFI.csv"))
 
 # Upper Verde Streams -----------------------------------------------------
 
@@ -87,12 +91,17 @@ pts <- pts_with_huc8 %>%
 source(here("1-data/preprocessing/1_preprocess_fx.R"))
 final.Verde <- assignVariables_preprocessing(pts)
 
-final_data.Verde <- final[,c(1:4,6:8,5,10:51)]
+final_data.Verde <- final.Verde[,c(1:4,6:8,5,10:51)]
+
+summary.Verde <- final_data.Verde %>%
+  group_by(HUC8, Long, Lat) %>%
+  summarise(meanBFI = mean(Predicted_BFI))
 
 # Predictions -------------------------------------------------------------
 
 xgb.statewide <- xgb.load(here("2-experiments/exp01_statewide-model/models/xgb.statewide"))
 
-final_data.sanPedro$Predicted_BFI <- inv.logit(predict(object = xgb.statewide, newdata = as.matrix(final_data.sanPedro[, 5:50])))
+final_data.Verde$Predicted_BFI <- inv.logit(predict(object = xgb.statewide, newdata = as.matrix(final_data.Verde[, 5:50])))
 
-write.csv(final_data.sanPedro, here("2-experiments/exp01_statewide-model/data/san-pedro-pts_dataset.csv"))
+write.csv(final_data.Verde, here("2-experiments/exp01_statewide-model/data/verde-pts_dataset.csv"))
+write.csv(summary.Verde, here("2-experiments/exp01_statewide-model/data/verde_meanBFI.csv"))
