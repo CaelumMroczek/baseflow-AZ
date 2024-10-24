@@ -10,7 +10,7 @@ remotes::install_github("mikejohnson51/AOI")
 # Create a vector of all the package names
 packages <- c("AOI", "data.table", "dataRetrieval", "dplyr","exactextractr",
               "ggplot2", "here", "lubridate", "raster", "readr",
-              "renv", "rmarkdown", "sf", "sp", "stringr", "tidyverse", "terra",
+              "renv", "rmarkdown", "sf", "sp", "stringr", "tidyverse", "terra", "corrr",
               "elevatr", "boot", "xgboost", "caret", "ggthemes", "hydroGOF", "Kendall")
 
 # Install packages that are not already installed

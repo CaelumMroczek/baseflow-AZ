@@ -6,7 +6,7 @@ usgs_gages <- read.csv(here("1-data/instrumented_all-predictors.csv"))
 
 Calculate basic descriptive statistics for BFI: mean, median, standard deviation, min, max, and quartiles
 
--   \>400 observations of BFI are \< .0001; 1000 are \< 0.01
+-   \>400 observations of BFI are \< .001; 1000 are \< 0.01
 
     -   `Should check if they are at the same locations (rivers to get rid of as they are likely ephemeral) or time periods (dry periods of groundwater-surface water interaction)`
 
@@ -97,16 +97,22 @@ results
 ## Exploring Low BFI - Spatially/Temporally
 
 ```{r}
-# Filter observations of BFI < 0.0001
-low_bfi_data <- usgs_gages %>% filter(BFI < 0.0001)
+# Filter observations of low BFI
+low_bfi_data <- usgs_gages %>% filter(BFI < 0.01)
 
 # Count occurrences of low BFI observations by location
 location_counts <- low_bfi_data %>%
-  group_by(Site_Num, HUC8) %>%
+  group_by(HUC8) %>%
   summarise(count = n()) %>%
   arrange(desc(count))
 
 # View locations with low BFI observations
 print(location_counts)
 
+year_counts <- low_bfi_data %>%
+  group_by(Year, HUC8) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+# View Years with low BFI
+print(year_counts)
 ```

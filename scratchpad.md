@@ -88,9 +88,9 @@
 
     -   20 random points on streams within each HUC8
 
-    -   Since this version of the model/dataset includes observations with low BFI (below 0.1), the estimates of BFI are much lower.
+    -   Since this version of the model/dataset includes observations with low BFI (below 0.1), the estimates of BFI are much lower.d
 
-    -   **Mean BFI of instrumented sites (1991-2020) is 0.362.**
+    -   Mean BFI of instrumented sites (1991-2020) is 0.362.
 
     -   **Mean BFI of artificial points (1991-2020) is 0.201.**
 
@@ -99,3 +99,29 @@
     -   All stream orders (1-9?)
 
     -   347730 observations
+
+## 24 October 2024
+
+-   Deciding to use the trimmed model as the official model after feature selection of the more complex model
+
+    -   Reducing the input variables to the model by using only relevant data (top 10 predictors) and getting rid of noise in data
+
+    -   Makes the model be better for operational use –\> requires less data
+
+-   Exploring Low-BFI (\>.01) spatial/temporal grouping
+
+    -   No annual grouping of low BFI
+
+    -   Spatial Low BFI (\<.01)
+
+        -   Upper Santa Cruz (15050301) - 166 observations
+
+        -   Rillito (15050302) - 130 observations
+
+        -   Agua Fria (15070102) - 106 observations
+
+        -   Lower Salt (15060106) - 77 observations
+
+        -   San Simon Wash (15080101) - 72 observations
+
+        -   Brawley Wash (15050304) - 71 observations

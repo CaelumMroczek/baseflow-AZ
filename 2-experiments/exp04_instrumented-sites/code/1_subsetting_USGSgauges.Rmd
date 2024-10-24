@@ -1,0 +1,218 @@
+```{r}
+usgs_gages <- read.csv(here("1-data/instrumented_all-predictors.csv"))
+model_data <- read.csv(here("2-experiments/exp03_trimmed-statewide-model/data/trimmed-statewide-model_results.csv"))
+```
+
+## Produce table with instrumented gauges used in study
+
+To be added to Supplemental Information
+
+```{r}
+summary_df <- usgs_gages %>%
+  group_by(Site_Num, HUC8, Lat, Long) %>%
+  summarise(
+    num_years_of_record = n(),
+    years_of_record = list(sort(unique(Year)))
+  ) %>%
+  ungroup()
+
+summary_df$years_of_record <- sapply(summary_df$years_of_record, toString)
+# write.csv(summary_df, here("1-data/instrumented_period-of-record.csv"), row.names = F)
+```
+
+## Loading Initial USGS Streamgages
+
+```{r}
+# Get discharge data for all AZ streamgages
+sites_init <- dataRetrieval::whatNWISsites(stateCd = "AZ", #Only sites in AZ
+                            parameterCd = "00060",  #discharge
+                            service="dv")
+
+# Preprocessing retrieved streamgages
+sites <- filter(sites_init, site_tp_cd %in% c('ST')) #only sites that are a Stream
+sites <- sites[,-c(1,4,7,8)] #remove unwanted columns
+colnames(sites) = c('Site_Num', 'Station_Name', 'Latitude', 'Longitude')
+sites <- sites[c(1:254,256:478),] #hard code remove specific problem site
+
+#################################################
+## Remove Colorado River gauges
+#################################################
+
+# Find indices where "Colorado River" appears in the Station_Name column
+colorado_sites_indices <- grep("Colorado River", sites$Station_Name, ignore.case = TRUE)
+
+little_colorado_sites_indices <- grep("Little Colorado River", sites$Station_Name, ignore.case = TRUE)
+
+# Exclude "Little Colorado River" from the indices of "Colorado River"
+final_colorado_sites_indices <- setdiff(colorado_sites_indices, little_colorado_sites_indices)
+
+sites_noCO <- sites[-final_colorado_sites_indices, ]
+```
+
+# Filtering Streamgages 
+
+### Initialize dataframe
+
+This dataframe will hold the goodness of fit statistics for the model on each classification of streamgages
+
+```{r}
+stats.Class <- data.frame()
+```
+
+## Seasonality
+
+Monsoon-dominated: Majority of streamflow occurs during July-September
+
+Snowmelt-dominated: Majority of streamflow occurs during March-June
+
+```{r}
+source(here("1-data/preprocessing/1_preprocess_fx.R"))
+
+USGSsites = annualUSGS_preprocessing(sites_noCO)
+yearly_bfi <- USGSsites$results
+
+seasonality_count <- yearly_bfi %>%
+  group_by(Site_Num, Seasonality) %>%
+  summarise(count = n()) %>%
+  ungroup()
+  
+seasonality_gauges <- seasonality_count %>%
+  group_by(Site_Num) %>%
+  slice_max(count, n = 1, with_ties = FALSE) %>%
+  dplyr::select(Site_Num, Seasonality)
+```
+
+### Model Performance
+
+```{r}
+seasonality_gauges$Site_Num <- as.integer(seasonality_gauges$Site_Num) #both are integers
+
+# Left join to add 'Seasonality' column to the dataframe
+data.seasonal <- model_data %>%
+  left_join(seasonality_gauges, by = "Site_Num")
+
+season.Monsoon <- which(data.seasonal$Seasonality == "Monsoon-dominated")
+season.Snow <- which(data.seasonal$Seasonality == "Snowmelt-dominated")
+
+# Monsoon-dominated catchment Goodness of Fit Stats
+monsoon.stat <- c(Class = "Climate - Monsoon Dominated", analysis.stats(data.seasonal[season.Monsoon,]))
+stats.Class <- rbind(stats.Class, monsoon.stat)
+
+# Snowmelt-dominated catchment Goodness of Fit Stats
+snow.stat <- c(Class = "Climate - Snowmelt Dominated", analysis.stats(data.seasonal[season.Snow,]))
+stats.Class <- rbind(stats.Class, snow.stat)
+
+```
+
+## Physiographic Region
+
+```{r}
+regional_inst.data <- read.csv(here("1-data/raw/instrumented_region.csv"))
+
+streamgage_regional.data <- regional_inst.data %>%
+  distinct(Site_Num, .keep_all = TRUE) #unique usgs streamgages only
+streamgage_regional.data <- streamgage_regional.data[,c(1:4,6)]
+```
+
+### Model Performance
+
+```{r}
+data.regional <- model_data %>%
+  left_join(streamgage_regional.data, by = "Site_Num") #add PROVINCE column to dataset
+
+region.Basin <- which(data.regional$PROVINCE == "BASIN AND RANGE")
+region.Plateau <- which(data.regional$PROVINCE == "COLORADO PLATEAUS")
+
+# Basin&Range Goodness of Fit Stats
+basin.stat <- c(Class = "PhysRegion - Basin&Range", analysis.stats(data.seasonal[region.Basin,]))
+stats.Class <- rbind(stats.Class, basin.stat)
+
+# Colorado Plateau Goodness of Fit Stats
+plateau.stat <- c(Class = "PhysRegion - CO Plateau", analysis.stats(data.seasonal[region.Plateau,]))
+stats.Class <- rbind(stats.Class, plateau.stat)
+```
+
+## Climate
+
+Warm-Wet: above median temp, above median precip
+
+Warm-Dry: above median temp, below median precip
+
+Cool-Wet: below median temp, above median precip
+
+Cool-Dry: below median temp, below median precip
+
+```{r}
+data.climate <- model_data %>%
+  mutate(Precip_Category = ifelse(Precip_MM <= median(Precip_MM), "Dry", "Wet"))
+
+# Create a new column to categorize temperature based on median
+data.climate <- data.climate %>%
+  mutate(Temp_Category = ifelse(Temp_C <= median(Temp_C), "Cool", "Warm"))
+
+# Create the final climate groups using the "Warm/Cool-Wet/Dry" terminology
+data.climate <- data.climate %>%
+  mutate(Climate_Group = case_when(
+    Precip_Category == "Dry" & Temp_Category == "Cool" ~ "Cool-Dry",
+    Precip_Category == "Dry" & Temp_Category == "Warm" ~ "Warm-Dry",
+    Precip_Category == "Wet" & Temp_Category == "Cool" ~ "Cool-Wet",
+    Precip_Category == "Wet" & Temp_Category == "Warm" ~ "Warm-Wet"
+  ))
+
+```
+
+### Model Performance
+
+```{climate_WW <- which(data.climate$Climate_Group == "Warm-Wet")}
+climate_WD <- which(data.climate$Climate_Group == "Warm-Dry")
+climate_CW <- which(data.climate$Climate_Group == "Cool-Wet")
+climate_CD <- which(data.climate$Climate_Group == "Cool-Dry")
+
+# Warm-Wet Goodness of Fit Stats
+climate_WW.stat <- c(Class = "Climate - Warm-Wet", analysis.stats(data.climate[climate_WW,]))
+stats.Class <- rbind(stats.Class, climate_WW.stat)
+
+# Warm-Dry Goodness of Fit Stats
+climate_WD.stat <- c(Class = "Climate - Warm-Dry", analysis.stats(data.climate[climate_WD,]))
+stats.Class <- rbind(stats.Class, climate_WD.stat)
+
+# Cool-Wet Goodness of Fit Stats
+climate_CW.stat <- c(Class = "Climate - Cool-Wet", analysis.stats(data.climate[climate_CW,]))
+stats.Class <- rbind(stats.Class, climate_CW.stat)
+
+# Cool-Dry Goodness of Fit Stats
+climate_CD.stat <- c(Class = "Climate - Cool-Dry", analysis.stats(data.climate[climate_CD,]))
+stats.Class <- rbind(stats.Class, climate_CD.stat)
+```
+
+## Slope Gradient
+
+```{r}
+# Calculate the slope gradient for each site and add as a new column
+data.slope <- usgs_gages %>%
+  mutate(Slope_Decimal = tan(SLOPE_DEGREES * pi / 180))  # Convert slope from degrees to decimals (slope gradient)
+
+# Categorize each site into "Low" or "High" based on the median slope
+data.slope <- data.slope %>%
+  mutate(Slope_Category = ifelse(Slope_Decimal <= median(Slope_Decimal), "Low", "High"))
+
+temp_data.slope <- data.slope %>% 
+  dplyr::select(Site_Num, Slope_Category) %>%
+  distinct(Site_Num, Slope_Category)
+
+# Add slope to model_data
+slope_data <- left_join(model_data, temp_data.slope, by = "Site_Num")
+```
+
+```{r}
+slope_high <- which(slope_data$Slope_Category == "High")
+slope_low <- which(slope_data$Slope_Category == "Low")
+
+# Steep Slope Goodness of Fit Stats
+slope_high_stat <- c(Class = "Slope - High", analysis.stats(slope_data[slope_high, ]))
+stats.Class <- rbind(stats.Class, slope_high_stat)
+
+# Gentle Slope Goodness of Fit Stats
+slope_low_stat <- c(Class = "Slope - Low", analysis.stats(slope_data[slope_low, ]))
+stats.Class <- rbind(stats.Class, slope_low_stat)
+```

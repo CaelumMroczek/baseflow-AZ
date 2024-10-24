@@ -11,7 +11,7 @@ xgb.plot.importance(importance, rel_to_first = TRUE, top_n = 10)
 # Feature selection
 # Top 10 most important features
 top10 <- importance$Feature[1:10]
-top10 <- c("BFI", top10) #adding BFI so that it is kept in trainingData
+top10 <- c("HUC8", "Site_Num","BFI", top10) #adding BFI so that it is kept in trainingData
 
 full_training <- read.csv(here("2-experiments/exp01_statewide-model/models/data/instrumented_all-predictors.csv"))
 
@@ -53,14 +53,14 @@ for (fold in 1:num_folds) {
   # Train an xgboost model on the training set
   xgb.model <- xgboost(
     nrounds = 700,
-    data = as.matrix(training[, 2:11]),
+    data = as.matrix(training[, 4:13]),
     label = training$BFI.log,
     params = tune_grid,
     verbose = 0
   )
 
   # Make predictions on the testing set
-  predictions <- predict(xgb.model, newdata = as.matrix(testing[, 2:11]))
+  predictions <- predict(xgb.model, newdata = as.matrix(testing[, 4:13]))
   predictions <- inv.logit(predictions)
 
   # Store the results with testing data and the predictions
@@ -76,7 +76,7 @@ for (fold in 1:num_folds) {
 xgb.save(xgb.model, here("2-experiments/exp03_trimmed-statewide-model/models/xgb.trimmed-statewide"))
 
 # Save feature names
-write.csv(xgb.model$feature_names, here("2-experiments/exp03_trimmed-statewide-model/models/xgb.feature-names.csv"), row.names = F)
+write.csv(xgb.model$feature_names, here("2-experiments/exp03_trimmed-statewide-model/models/xgb.trimmed_feature-names.csv"), row.names = F)
 
 # Save Results dataframe
 write.csv(results_df, here("2-experiments/exp03_trimmed-statewide-model/data/trimmed-statewide-model_results.csv"), row.names = FALSE)
@@ -85,7 +85,7 @@ xgb.plot.importance(xgb.importance(model = xgb.model), rel_to_first = TRUE, top_
 
 ## Goodness of Fit Statistics #############################
 
-source(here("2-experiments/exp01_statewide-model/code/1_exp01_fx.R"))
+source(here("2-experiments/exp01_statewide-model/code/0_exp01_fx.R"))
 analysis.stats(results_df)
 
 
@@ -124,6 +124,6 @@ ggplot(data = results_df, mapping = aes(y = BFI, x = Predicted_BFI))+
 
 ## Plotting Feature Importance #############################
 
-feats <- read.csv(here("2-experiments/exp01_statewide-model/models/xgb.feature-names.csv"))
+feats <- read.csv(here("2-experiments/exp01_statewide-model/models/xgb-trimmed.feature-names.csv"))
 
 xgb.plot.importance(xgb.importance(model = y,feature_names = feats[,1]), rel_to_first = TRUE, top_n = 10)

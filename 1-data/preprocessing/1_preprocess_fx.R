@@ -1,17 +1,17 @@
 #################################################
 ## Function to get discharge for USGS streamgages and calculate
-## BFI for each year
+## BFI for each year + classify the seasonality of discharge at gauge
 ##
 ## Data source: USGS
 #################################################
 
 annualUSGS_preprocessing <- function(dataset){
 
-  dataset <- as.data.frame(cbind(dataset, BFI = 0)) # Create BFI column in dataset
+  dataset <- as.data.frame(cbind(dataset, BFI = 0, Seasonality = "")) # Create BFI and Seasonality columns in dataset
   errors <- c() # Initialize an empty vector to store error indices
 
   # Initialize an empty dataframe to store the final results
-  results <- data.frame(Site_Num = character(), Year = character(), BFI = numeric(), stringsAsFactors = FALSE)
+  results <- data.frame(Site_Num = character(), Year = character(), BFI = numeric(), Seasonality = character(), stringsAsFactors = FALSE)
 
   # Initialize progress bar with total rows in the dataset
   pb <- progress::progress_bar$new(total = nrow(dataset))
@@ -31,12 +31,13 @@ annualUSGS_preprocessing <- function(dataset){
     # Remove missing values from the gauge data
     gauge <- na.omit(gauge)
 
-    # Convert Date column to Date format and extract year
+    # Convert Date column to Date format and extract year and month
     gauge$Date <- as.Date(gauge$Date)
     gauge$Year <- format(gauge$Date, "%Y")
+    gauge$Month <- format(gauge$Date, "%m")
 
     # Initialize a dataframe to store BFI calculations for each valid year of the streamgage
-    yearly_bfi <- data.frame(Site_Num = character(), Year = character(), BFI = numeric(), stringsAsFactors = FALSE)
+    yearly_bfi <- data.frame(Site_Num = character(), Year = character(), BFI = numeric(), Seasonality = character(), stringsAsFactors = FALSE)
 
     if (nrow(gauge) != 0){
       # Loop through each unique year in the gauge data
@@ -52,9 +53,20 @@ annualUSGS_preprocessing <- function(dataset){
           Tsum <- sum(bf$qft) + sum(bf$bt)
           bfi <- BFsum / Tsum
 
-          # Store the streamgage, year, and BFI value if BFI is not NaN and >= 0
+          # Calculate total discharge for snowmelt (Feb-May) and monsoon (July-Sep) periods
+          snowmelt_discharge <- sum(year_data$X_00060_00003[as.numeric(year_data$Month) %in% c(2:5)])
+          monsoon_discharge <- sum(year_data$X_00060_00003[as.numeric(year_data$Month) %in% c(7:9)])
+
+          # Classify based on which season has more discharge
+          if (monsoon_discharge > snowmelt_discharge) {
+            seasonality <- "Monsoon-dominated"
+          } else {
+            seasonality <- "Snowmelt-dominated"
+          }
+
+          # Store the streamgage, year, BFI value, and seasonality if BFI is valid
           if (!is.nan(bfi) & bfi >= 0 & bfi <= 1){
-            yearly_bfi <- rbind(yearly_bfi, data.frame(Site_Num = site_no, Year = year, BFI = bfi, stringsAsFactors = FALSE))
+            yearly_bfi <- rbind(yearly_bfi, data.frame(Site_Num = site_no, Year = year, BFI = bfi, Seasonality = seasonality, stringsAsFactors = FALSE))
           }
         }
       }
@@ -134,3 +146,4 @@ assignVariables_preprocessing <- function(dataset){
   results <- cbind(dataset, variables)
   return(results)
 }
+

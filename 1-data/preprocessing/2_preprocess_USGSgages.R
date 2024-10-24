@@ -32,6 +32,7 @@ sites_noCO <- sites[-final_colorado_sites_indices, ]
 #################################################
 ## Run annualUSGS_preprocessing function
 #################################################
+source(here("1-data/preprocessing/1_preprocess_fx.R"))
 
 # Get filtered annual BFI for gauged sites
 USGSsites = annualUSGS_preprocessing(sites_noCO)
